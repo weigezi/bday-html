@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>🔐 Birthday Room</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Playfair+Display:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Serif SC',serif;overflow:hidden;height:100vh;background:#faf5ef}
+
+/* ═══ LANDING ═══ */
+#landing{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#fce4ec,#fff3e0,#e8f5e9);background-size:400% 400%;animation:bgShift 8s ease infinite}
+@keyframes bgShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.landing-card{background:rgba(255,255,255,.88);backdrop-filter:blur(16px);border-radius:28px;padding:52px 60px;text-align:center;max-width:460px;box-shadow:0 12px 48px rgba(0,0,0,.07)}
+.landing-card .emoji{font-size:3.2rem;margin-bottom:14px}
+.landing-card h1{font-family:'Playfair Display',serif;font-size:2.1rem;background:linear-gradient(135deg,#e91e63,#ff5722);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.landing-card .subtitle{font-size:.88rem;color:#888;margin-bottom:6px}
+.landing-card .divider{width:60px;height:1px;background:linear-gradient(90deg,transparent,#f8bbd0,transparent);margin:18px auto}
+.landing-card .desc{font-size:.84rem;color:#666;line-height:1.9;margin-bottom:28px}
+.enter-btn{padding:15px 52px;font-size:1rem;border:none;border-radius:999px;background:linear-gradient(135deg,#e91e63,#ff5722);color:#fff;cursor:pointer;font-family:'Noto Serif SC',serif;letter-spacing:.12em;box-shadow:0 4px 24px rgba(233,30,99,.3);transition:all .3s}
+.enter-btn:hover{transform:scale(1.06);box-shadow:0 6px 32px rgba(233,30,99,.4)}
+.float-emoji{position:absolute;opacity:.3;animation:floatUp linear infinite;pointer-events:none}
+@keyframes floatUp{0%{transform:translateY(100vh) rotate(0);opacity:0}10%{opacity:.3}90%{opacity:.3}100%{transform:translateY(-10vh) rotate(360deg);opacity:0}}
+
+/* ═══ ROOM ═══ */
+#room{position:fixed;inset:0;display:none;overflow:hidden;background:#faf5ef}
+.wall-back{position:absolute;top:5%;left:12%;right:12%;bottom:42%;background:linear-gradient(180deg,#fff8f0,#fef0e4);border-radius:12px 12px 0 0}
+.wall-left{position:absolute;top:5%;left:0;width:12%;bottom:42%;background:linear-gradient(90deg,#f5e6d8,#fff0e4);clip-path:polygon(0 10%,100% 0,100% 100%,0 90%)}
+.wall-right{position:absolute;top:5%;right:0;width:12%;bottom:42%;background:linear-gradient(270deg,#f5e6d8,#fff0e4);clip-path:polygon(0 0,100% 10%,100% 90%,0 100%)}
+.floor-area{position:absolute;left:0;right:0;bottom:0;height:42%;background:linear-gradient(180deg,#e8ddd0,#f0e8dc 30%,#f8f2ea);clip-path:polygon(12% 0,88% 0,100% 100%,0 100%)}
+.floor-area::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 80px,rgba(200,185,165,.1) 80px,rgba(200,185,165,.1) 81px)}
+
+/* ═══ CEILING: 人字形彩带 + 三角旗 + 星星灯 ═══ */
+.ceiling-decor{position:absolute;top:0;left:0;right:0;height:35%;z-index:2;pointer-events:none}
+
+/* ═══ OBJECTS ═══ */
+.obj{position:absolute;cursor:pointer;transition:transform .25s cubic-bezier(.34,1.56,.64,1),filter .25s;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.obj:hover{transform:scale(1.08) translateY(-3px);filter:brightness(1.06) drop-shadow(0 6px 16px rgba(0,0,0,.12))}
+.obj .tip{position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;padding:3px 10px;border-radius:6px;font-size:.65rem;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none;z-index:999}
+.obj:hover .tip{opacity:1}
+
+/* ── Sofa ── */
+.sofa-body{width:100%;height:100%;position:relative}
+.sofa-seat{position:absolute;bottom:0;left:5%;right:5%;height:42%;background:linear-gradient(180deg,#b0bec5,#90a4ae);border-radius:4px 4px 8px 8px;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.sofa-backrest{position:absolute;top:0;left:8%;right:8%;height:58%;background:linear-gradient(180deg,#a0aab0,#8a949a);border-radius:14px 14px 2px 2px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.06)}
+.sofa-arm{position:absolute;bottom:0;width:11%;height:72%;background:linear-gradient(180deg,#9aa4ab,#848e95);border-radius:8px 8px 6px 6px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.sofa-arm.l{left:0}.sofa-arm.r{right:0}
+.cushion{position:absolute;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,.08)}
+.teddy{position:absolute;font-size:1.1rem}
+
+/* ── Table ── */
+.table-body{width:100%;height:100%;background:linear-gradient(180deg,#a1887f,#8d6e63);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);position:relative}
+.table-leg{position:absolute;bottom:-24px;width:6px;height:24px;background:#6d4c41;border-radius:0 0 2px 2px}
+
+/* ── Cake ─ */
+.cake-wrap{position:relative;width:100%;height:100%}
+.cake-body{position:absolute;bottom:0;left:10%;right:10%;height:60%;background:linear-gradient(180deg,#f8bbd0,#f48fb1);border-radius:8px 8px 4px 4px;box-shadow:0 3px 8px rgba(0,0,0,.08)}
+.cake-frost{position:absolute;bottom:58%;left:15%;right:15%;height:20%;background:linear-gradient(180deg,#fff,#fce4ec);border-radius:5px 5px 0 0}
+.cake-candle{position:absolute;width:3px;height:22%;background:#fff9c4;border-radius:1px}
+.cake-flame{position:absolute;width:5px;height:7px;background:radial-gradient(#ffeb3b,#ff9800);border-radius:50% 50% 50% 50%/60% 60% 40% 40%;animation:flk .4s infinite alternate}
+@keyframes flk{0%{transform:scale(1) rotate(-3deg)}100%{transform:scale(1.15) rotate(3deg)}}
+
+/* ── Envelope ── */
+.env-body{width:100%;height:100%;background:linear-gradient(135deg,#ffd54f,#ffb300);border-radius:3px;box-shadow:0 2px 8px rgba(0,0,0,.08);position:relative}
+.env-body::before{content:'';position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(135deg,transparent 48%,#f9a825 48%,#f9a825 52%,transparent 52%)}
+.env-seal{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:16px;height:16px;background:#c62828;border-radius:50%;font-size:.5rem;display:flex;align-items:center;justify-content:center}
+
+/* ── Calendar ── */
+.cal-body{width:100%;height:100%;background:#fff;border-radius:5px;box-shadow:0 2px 8px rgba(0,0,0,.06);text-align:center;overflow:hidden}
+.cal-top{background:#e91e63;color:#fff;font-size:.5rem;padding:2px 0;font-weight:700}
+.cal-day{font-size:1.2rem;font-weight:700;color:#c62828;padding-top:2px;font-family:'Playfair Display',serif}
+
+/* ── Photo board ── */
+.pb-body{width:100%;height:100%;background:#fff;border-radius:3px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:4px;display:grid;grid-template-columns:1fr 1fr;gap:3px}
+.pb-slot{background:linear-gradient(135deg,#fce4ec,#f8bbd0);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:.55rem;opacity:.4}
+
+/* ── Bookshelf ── */
+.bs-body{width:100%;height:100%;background:linear-gradient(180deg,#5d4037,#4e342e);border-radius:4px;box-shadow:0 4px 14px rgba(0,0,0,.1);padding:5px;display:flex;flex-direction:column;gap:3px}
+.bs-row{flex:1;display:flex;gap:2px;align-items:flex-end}
+.bs-book{border-radius:1px 1px 0 0;flex:1}
+
+/* ── Door ── */
+.door-body{width:100%;height:100%;background:linear-gradient(180deg,#7e57c2,#5e35b1);border-radius:30px 30px 3px 3px;box-shadow:0 4px 14px rgba(0,0,0,.1);position:relative}
+.door-knob{position:absolute;right:15%;top:55%;width:7px;height:7px;background:#ffd54f;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+
+/* ── Lamp ── */
+.lamp-body{width:100%;height:100%;position:relative;display:flex;flex-direction:column;align-items:center}
+.lamp-shade{width:80%;height:35%;background:linear-gradient(180deg,#ffcc80,#ffb74d);border-radius:4px 4px 50% 50%;box-shadow:0 4px 12px rgba(255,180,80,.3)}
+.lamp-stand{width:3px;flex:1;background:#bbb}
+.lamp-base{width:50%;height:8%;background:#999;border-radius:2px}
+
+/* ── Drawer ── */
+.dr-body{width:100%;height:100%;background:linear-gradient(180deg,#8d6e63,#5d4037);border-radius:3px;box-shadow:0 3px 10px rgba(0,0,0,.1);position:relative}
+.dr-line{position:absolute;left:8%;right:8%;height:1px;background:rgba(255,255,255,.12)}
+.dr-knob{position:absolute;left:50%;transform:translateX(-50%);width:10px;height:5px;background:#ffd54f;border-radius:2px}
+
+/* ── Gift ── */
+.gift-body{width:100%;height:100%;background:linear-gradient(135deg,#66bb6a,#43a047);border-radius:5px;box-shadow:0 2px 8px rgba(0,0,0,.08);position:relative}
+.gift-rv{position:absolute;left:50%;top:0;bottom:0;width:5px;background:#ffd54f;transform:translateX(-50%)}
+.gift-rh{position:absolute;top:50%;left:0;right:0;height:5px;background:#ffd54f;transform:translateY(-50%)}
+.gift-bow{position:absolute;top:-7px;left:50%;transform:translateX(-50%);font-size:.8rem}
+
+/* ── Plant ─ */
+.plant-body{width:100%;height:100%;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+.plant-leaves{font-size:1.3rem;margin-bottom:-4px}
+.plant-pot{width:70%;height:45%;background:linear-gradient(180deg,#8d6e63,#6d4c41);border-radius:2px 2px 6px 6px}
+
+/* ── Balloon ── */
+.balloon-body{width:100%;height:80%;border-radius:50%;box-shadow:inset -3px -3px 6px rgba(0,0,0,.08),0 2px 4px rgba(0,0,0,.05);animation:bFl 3s ease-in-out infinite;position:relative}
+.balloon-body::after{content:'';position:absolute;bottom:-10px;left:50%;width:1px;height:10px;background:rgba(0,0,0,.15)}
+@keyframes bFl{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+/* ── Carpet ── */
+.carpet-body{width:100%;height:100%;border-radius:50%;background:radial-gradient(ellipse,#c8e6c9 0%,#a5d6a7 60%,#81c784 100%);opacity:.45;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+
+/* ── Note ─ */
+.note-body{width:100%;height:100%;background:#fff9c4;border-radius:2px;transform:rotate(-4deg);box-shadow:1px 2px 5px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;font-size:.9rem}
+
+/* ── Mug ─ */
+.mug-body{width:100%;height:100%;background:linear-gradient(180deg,#42a5f5,#1e88e5);border-radius:0 0 5px 5px;position:relative;box-shadow:0 2px 4px rgba(0,0,0,.06)}
+.mug-body::after{content:'';position:absolute;right:-6px;top:15%;width:7px;height:55%;border:2px solid #1e88e5;border-left:none;border-radius:0 5px 5px 0}
+
+/* ── Vase ── */
+.vase-body{width:100%;height:100%;background:linear-gradient(180deg,#ab47bc,#7b1fa2);border-radius:5px 5px 8px 8px;box-shadow:0 2px 6px rgba(0,0,0,.08);position:relative;display:flex;align-items:flex-start;justify-content:center}
+.vase-fl{position:absolute;top:-12px;font-size:.9rem}
+
+/* ═══ MODAL ═══ */
+#modal-overlay{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.3);backdrop-filter:blur(10px)}
+#modal-overlay.show{display:flex}
+.modal{background:#fffdf7;border-radius:22px;padding:32px 36px;max-width:400px;width:90%;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.1);position:relative;animation:mIn .3s ease}
+@keyframes mIn{from{opacity:0;transform:scale(.92) translateY(14px)}to{opacity:1;transform:none}}
+.modal .m-emoji{font-size:2.4rem;margin-bottom:6px}
+.modal h3{font-size:1rem;margin-bottom:6px;color:#3a2e2e}
+.modal p{font-size:.82rem;color:#666;line-height:1.85;margin-bottom:12px;white-space:pre-line}
+.modal .close-btn{position:absolute;top:10px;right:12px;width:26px;height:26px;border-radius:50%;border:none;background:#9aa4ab;cursor:pointer;font-size:.8rem;display:flex;align-items:center;justify-content:center;color:#999}
+.modal .close-btn:hover{background:#e0e0e0;color:#333}
+.modal .highlight{background:rgba(233,30,99,.06);border:1px solid rgba(233,30,99,.12);border-radius:8px;padding:10px;margin:10px 0;font-family:'Playfair Display',serif;font-size:1.6rem;color:#e91e63;letter-spacing:.3em}
+.modal input[type=text]{width:100%;padding:9px 14px;border:1px solid #f8bbd0;border-radius:8px;font-size:.95rem;text-align:center;letter-spacing:.2em;font-family:'Playfair Display',serif;margin-bottom:10px}
+.modal .action-btn{padding:9px 28px;border:none;border-radius:999px;background:linear-gradient(135deg,#e91e63,#ff5722);color:#fff;cursor:pointer;font-size:.85rem;font-family:'Noto Serif SC',serif}
+.modal .action-btn:hover{transform:scale(1.05)}
+#subtitle{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:10;background:rgba(255,255,255,.88);backdrop-filter:blur(10px);padding:9px 24px;border-radius:14px;font-size:.78rem;color:#555;max-width:75%;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+#bee{position:fixed;z-index:999;pointer-events:none;font-size:1.3rem;transform:translate(-50%,-50%);transition:left .08s,top .08s}
+</style>
+</head>
+<body>
+<div id="landing">
+  <div class="landing-card">
+    <div class="emoji">🎂</div>
+    <h1>Birthday Room</h1>
+    <div class="subtitle">— 一间藏满回忆的生日密室 —</div>
+    <div class="divider"></div>
+    <div class="desc">找到散落在房间里的线索<br>解开属于小宝 Doris 的生日密码</div>
+    <button class="enter-btn" onclick="enterRoom()">进入房间 ✦</button>
+  </div>
+</div>
+
+<div id="room">
+  <div class="wall-back"></div><div class="wall-left"></div><div class="wall-right"></div><div class="floor-area"></div>
+
+  <!-- 人字形彩带 + 三角旗 + 星星 -->
+  <svg class="ceiling-decor" viewBox="0 0 100 35" preserveAspectRatio="none">
+    <!-- 人字形彩带: 从中间顶部向两下角展开 -->
+    <path d="M50,2 Q35,18 12,30" fill="none" stroke="#7b1fa2" stroke-width=".5" opacity=".6"/>
+    <path d="M50,2 Q65,18 88,30" fill="none" stroke="#7b1fa2" stroke-width=".5" opacity=".6"/>
+    <path d="M50,2 Q38,15 18,26" fill="none" stroke="#f48fb1" stroke-width=".4" opacity=".5"/>
+    <path d="M50,2 Q62,15 82,26" fill="none" stroke="#f48fb1" stroke-width=".4" opacity=".5"/>
+    <path d="M50,2 Q40,12 22,22" fill="none" stroke="#4fc3f7" stroke-width=".3" opacity=".4"/>
+    <path d="M50,2 Q60,12 78,22" fill="none" stroke="#4fc3f7" stroke-width=".3" opacity=".4"/>
+    <!-- 顶点装饰 -->
+    <circle cx="50" cy="2" r=".7" fill="#ffd54f" opacity=".7"/>
+    <!-- 三角旗 (沿人字线分布) -->
+    <polygon points="20,12 23,18 17,18" fill="#ef5350" opacity=".7"/>
+    <polygon points="30,8 33,14 27,14" fill="#ffd54f" opacity=".7"/>
+    <polygon points="40,5 43,11 37,11" fill="#42a5f5" opacity=".7"/>
+    <polygon points="60,5 63,11 57,11" fill="#66bb6a" opacity=".7"/>
+    <polygon points="70,8 73,14 67,14" fill="#ab47bc" opacity=".7"/>
+    <polygon points="80,12 83,18 77,18" fill="#ff7043" opacity=".7"/>
+    <!-- 星星 -->
+    <text x="25" y="7" font-size="1.5" opacity=".5">⭐</text>
+    <text x="45" y="4" font-size="1.2" opacity=".4">✨</text>
+    <text x="55" y="4" font-size="1.2" opacity=".4">⭐</text>
+    <text x="75" y="7" font-size="1.5" opacity=".5">✨</text>
+    <text x="35" y="16" font-size="1" opacity=".3">⭐</text>
+    <text x="65" y="16" font-size="1" opacity=".3">✨</text>
+  </svg>
+
+  <!-- Objects container (JS will populate) -->
+  <div id="objects"></div>
+</div>
+
+<div id="modal-overlay">
+  <div class="modal" id="modal">
+    <button class="close-btn" onclick="closeModal()">✕</button>
+    <div class="m-emoji" id="modal-emoji"></div>
+    <h3 id="modal-title"></h3>
+    <p id="modal-text"></p>
+    <div id="modal-extra"></div>
+  </div>
+</div>
+<div id="subtitle" style="display:none"></div>
+<div id="bee">🐝</div>
+<script src="./src/main-editor.js"></script>
+</body>
+</html>

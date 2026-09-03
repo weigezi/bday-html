@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>🔐 Birthday Room</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Playfair+Display:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Serif SC',serif;overflow:hidden;height:100vh;background:#faf5ef}
+
+/* ═══ LANDING ═══ */
+#landing{position:fixed;inset:0;z-index:100;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#fce4ec,#fff3e0,#e8f5e9);background-size:400% 400%;animation:bgShift 8s ease infinite}
+@keyframes bgShift{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.landing-card{background:rgba(255,255,255,.88);backdrop-filter:blur(16px);border-radius:28px;padding:52px 60px;text-align:center;max-width:460px;box-shadow:0 12px 48px rgba(0,0,0,.07)}
+.landing-card .emoji{font-size:3.2rem;margin-bottom:14px}
+.landing-card h1{font-family:'Playfair Display',serif;font-size:2.1rem;background:linear-gradient(135deg,#e91e63,#ff5722);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.landing-card .subtitle{font-size:.88rem;color:#888;margin-bottom:6px}
+.landing-card .divider{width:60px;height:1px;background:linear-gradient(90deg,transparent,#f8bbd0,transparent);margin:18px auto}
+.landing-card .desc{font-size:.84rem;color:#666;line-height:1.9;margin-bottom:28px}
+.enter-btn{padding:15px 52px;font-size:1rem;border:none;border-radius:999px;background:linear-gradient(135deg,#e91e63,#ff5722);color:#fff;cursor:pointer;font-family:'Noto Serif SC',serif;letter-spacing:.12em;box-shadow:0 4px 24px rgba(233,30,99,.3);transition:all .3s}
+.enter-btn:hover{transform:scale(1.06);box-shadow:0 6px 32px rgba(233,30,99,.4)}
+.float-emoji{position:absolute;opacity:.3;animation:floatUp linear infinite;pointer-events:none}
+@keyframes floatUp{0%{transform:translateY(100vh) rotate(0);opacity:0}10%{opacity:.3}90%{opacity:.3}100%{transform:translateY(-10vh) rotate(360deg);opacity:0}}
+
+/* ═══ ROOM ═══ */
+#room{position:fixed;inset:0;display:none;overflow:hidden;background:#faf5ef}
+#room.revealing{display:block;animation:roomReveal 1.2s ease-out forwards}
+@keyframes roomReveal{0%{opacity:0;transform:scale(1.06);filter:blur(10px)}100%{opacity:1;transform:scale(1);filter:blur(0)}}
+#landing.fading{animation:landingFade .8s ease-in forwards}
+@keyframes landingFade{0%{opacity:1;transform:scale(1)}100%{opacity:0;transform:scale(.95);pointer-events:none}}
+.wall-back{position:absolute;top:5%;left:12%;right:12%;bottom:42%;background:linear-gradient(180deg,#fff8f0,#fef0e4);border-radius:12px 12px 0 0}
+.wall-left{position:absolute;top:5%;left:0;width:12%;bottom:42%;background:linear-gradient(90deg,#f5e6d8,#fff0e4);clip-path:polygon(0 10%,100% 0,100% 100%,0 90%)}
+.wall-right{position:absolute;top:5%;right:0;width:12%;bottom:42%;background:linear-gradient(270deg,#f5e6d8,#fff0e4);clip-path:polygon(0 0,100% 10%,100% 90%,0 100%)}
+.floor-area{position:absolute;left:0;right:0;bottom:0;height:42%;background:linear-gradient(180deg,#e8ddd0,#f0e8dc 30%,#f8f2ea);clip-path:polygon(12% 0,88% 0,100% 100%,0 100%)}
+.floor-area::before{content:'';position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent,transparent 80px,rgba(200,185,165,.1) 80px,rgba(200,185,165,.1) 81px)}
+
+/* ═══ CEILING: 人字形彩带 + 三角旗 + 星星灯 ═══ */
+.ceiling-decor{position:absolute;top:0;left:0;right:0;height:35%;z-index:2;pointer-events:none}
+
+/* ═══ OBJECTS ═══ */
+.obj{position:absolute;cursor:pointer;transition:transform .25s cubic-bezier(.34,1.56,.64,1),filter .25s;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.obj:hover{transform:scale(1.08) translateY(-3px);filter:brightness(1.06) drop-shadow(0 6px 16px rgba(0,0,0,.12))}
+.obj .tip{position:absolute;top:-28px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.7);color:#fff;padding:3px 10px;border-radius:6px;font-size:.65rem;white-space:nowrap;opacity:0;transition:opacity .2s;pointer-events:none;z-index:999}
+.obj:hover .tip{opacity:1}
+
+/* ── Sofa ── */
+.sofa-body{width:100%;height:100%;position:relative}
+.sofa-seat{position:absolute;bottom:0;left:5%;right:5%;height:42%;background:linear-gradient(180deg,#b0bec5,#90a4ae);border-radius:4px 4px 8px 8px;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.sofa-backrest{position:absolute;top:0;left:8%;right:8%;height:58%;background:linear-gradient(180deg,#a0aab0,#8a949a);border-radius:14px 14px 2px 2px;box-shadow:inset 0 -4px 8px rgba(0,0,0,.06)}
+.sofa-arm{position:absolute;bottom:0;width:11%;height:72%;background:linear-gradient(180deg,#9aa4ab,#848e95);border-radius:8px 8px 6px 6px;box-shadow:0 2px 6px rgba(0,0,0,.06)}
+.sofa-arm.l{left:0}.sofa-arm.r{right:0}
+.cushion{position:absolute;border-radius:6px;box-shadow:0 2px 4px rgba(0,0,0,.08)}
+.teddy{position:absolute;font-size:1.1rem}
+
+/* ── Table ── */
+.table-body{width:100%;height:100%;background:linear-gradient(180deg,#a1887f,#8d6e63);border-radius:8px;box-shadow:0 4px 12px rgba(0,0,0,.1);position:relative}
+.table-leg{position:absolute;bottom:-24px;width:6px;height:24px;background:#6d4c41;border-radius:0 0 2px 2px}
+
+/* ── Cake ─ */
+.cake-wrap{position:relative;width:100%;height:100%}
+.cake-body{position:absolute;bottom:0;left:10%;right:10%;height:60%;background:linear-gradient(180deg,#f8bbd0,#f48fb1);border-radius:8px 8px 4px 4px;box-shadow:0 3px 8px rgba(0,0,0,.08)}
+.cake-frost{position:absolute;bottom:58%;left:15%;right:15%;height:20%;background:linear-gradient(180deg,#fff,#fce4ec);border-radius:5px 5px 0 0}
+.cake-candle{position:absolute;width:3px;height:22%;background:#fff9c4;border-radius:1px}
+.cake-flame{position:absolute;width:5px;height:7px;background:radial-gradient(#ffeb3b,#ff9800);border-radius:50% 50% 50% 50%/60% 60% 40% 40%;animation:flk .4s infinite alternate}
+@keyframes flk{0%{transform:scale(1) rotate(-3deg)}100%{transform:scale(1.15) rotate(3deg)}}
+
+/* ── Envelope ── */
+.env-body{width:100%;height:100%;background:linear-gradient(135deg,#ffd54f,#ffb300);border-radius:3px;box-shadow:0 2px 8px rgba(0,0,0,.08);position:relative}
+.env-body::before{content:'';position:absolute;top:0;left:0;right:0;height:50%;background:linear-gradient(135deg,transparent 48%,#f9a825 48%,#f9a825 52%,transparent 52%)}
+.env-seal{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:16px;height:16px;background:#c62828;border-radius:50%;font-size:.5rem;display:flex;align-items:center;justify-content:center}
+
+/* ── Calendar ── */
+.cal-body{width:100%;height:100%;background:#fff;border-radius:5px;box-shadow:0 2px 8px rgba(0,0,0,.06);text-align:center;overflow:hidden}
+.cal-top{background:#e91e63;color:#fff;font-size:.5rem;padding:2px 0;font-weight:700}
+.cal-day{font-size:1.2rem;font-weight:700;color:#c62828;padding-top:2px;font-family:'Playfair Display',serif}
+
+/* ── Photo board ── */
+.pb-body{width:100%;height:100%;background:#fff;border-radius:3px;box-shadow:0 2px 10px rgba(0,0,0,.06);padding:4px;display:grid;grid-template-columns:1fr 1fr;gap:3px}
+.pb-slot{background:linear-gradient(135deg,#fce4ec,#f8bbd0);border-radius:2px;display:flex;align-items:center;justify-content:center;font-size:.55rem;opacity:.4}
+
+/* ── Bookshelf ── */
+.bs-body{width:100%;height:100%;background:linear-gradient(180deg,#5d4037,#4e342e);border-radius:4px;box-shadow:0 4px 14px rgba(0,0,0,.1);padding:5px;display:flex;flex-direction:column;gap:3px}
+.bs-row{flex:1;display:flex;gap:2px;align-items:flex-end}
+.bs-book{border-radius:1px 1px 0 0;flex:1;filter:saturate(.7) brightness(1.05)}
+
+/* ── Door ── */
+.door-body{width:100%;height:100%;background:linear-gradient(180deg,#7e57c2,#5e35b1);border-radius:30px 30px 3px 3px;box-shadow:0 4px 14px rgba(0,0,0,.1);position:relative}
+.door-knob{position:absolute;right:15%;top:55%;width:7px;height:7px;background:#ffd54f;border-radius:50%;box-shadow:0 1px 3px rgba(0,0,0,.2)}
+
+/* ── Lamp ── */
+.lamp-body{width:100%;height:100%;position:relative;display:flex;flex-direction:column;align-items:center}
+.lamp-shade{width:80%;height:35%;background:linear-gradient(180deg,#ffcc80,#ffb74d);border-radius:4px 4px 50% 50%;box-shadow:0 4px 12px rgba(255,180,80,.3)}
+.lamp-stand{width:3px;flex:1;background:#bbb}
+.lamp-base{width:50%;height:8%;background:#999;border-radius:2px}
+
+/* ── Drawer ── */
+.dr-body{width:100%;height:100%;background:linear-gradient(180deg,#8d6e63,#5d4037);border-radius:3px;box-shadow:0 3px 10px rgba(0,0,0,.1);position:relative}
+.dr-line{position:absolute;left:8%;right:8%;height:1px;background:rgba(255,255,255,.12)}
+.dr-knob{position:absolute;left:50%;transform:translateX(-50%);width:10px;height:5px;background:#ffd54f;border-radius:2px}
+
+/* ── Gift ── */
+.gift-body{width:100%;height:100%;background:linear-gradient(135deg,#66bb6a,#43a047);border-radius:5px;box-shadow:0 2px 8px rgba(0,0,0,.08);position:relative}
+.gift-rv{position:absolute;left:50%;top:0;bottom:0;width:5px;background:#ffd54f;transform:translateX(-50%)}
+.gift-rh{position:absolute;top:50%;left:0;right:0;height:5px;background:#ffd54f;transform:translateY(-50%)}
+.gift-bow{position:absolute;top:-7px;left:50%;transform:translateX(-50%);font-size:.8rem}
+
+/* ── Plant ─ */
+.plant-body{width:100%;height:100%;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+.plant-leaves{font-size:1.3rem;margin-bottom:-4px}
+.plant-pot{width:70%;height:45%;background:linear-gradient(180deg,#8d6e63,#6d4c41);border-radius:2px 2px 6px 6px}
+
+/* ── Balloon ── */
+.balloon-body{width:100%;height:80%;border-radius:50%;box-shadow:inset -3px -3px 6px rgba(0,0,0,.08),inset 3px 3px 8px rgba(255,255,255,.25),0 2px 4px rgba(0,0,0,.05);animation:bFl 3s ease-in-out infinite;position:relative;opacity:.92}
+.balloon-body::after{content:'';position:absolute;bottom:-10px;left:50%;width:1px;height:10px;background:rgba(0,0,0,.15)}
+@keyframes bFl{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+
+/* ── Carpet ── */
+.carpet-body{width:100%;height:100%;border-radius:50%;background:radial-gradient(ellipse,#c8e6c9 0%,#a5d6a7 60%,#81c784 100%);opacity:.65;box-shadow:0 2px 8px rgba(0,0,0,.04)}
+
+/* ── Note ─ */
+.note-body{width:100%;height:100%;background:#fff9c4;border-radius:2px;transform:rotate(-4deg);box-shadow:1px 2px 5px rgba(0,0,0,.06);display:flex;align-items:center;justify-content:center;font-size:.9rem}
+
+/* ── Mug ─ */
+.mug-body{width:100%;height:100%;background:linear-gradient(180deg,#42a5f5,#1e88e5);border-radius:0 0 5px 5px;position:relative;box-shadow:0 2px 4px rgba(0,0,0,.06)}
+.mug-body::after{content:'';position:absolute;right:-6px;top:15%;width:7px;height:55%;border:2px solid #1e88e5;border-left:none;border-radius:0 5px 5px 0}
+
+/* ── Vase ── */
+.vase-body{width:100%;height:100%;background:linear-gradient(180deg,#ab47bc,#7b1fa2);border-radius:5px 5px 8px 8px;box-shadow:0 2px 6px rgba(0,0,0,.08);position:relative;display:flex;align-items:flex-start;justify-content:center}
+.vase-fl{position:absolute;top:-12px;font-size:.9rem}
+
+/* ═══ MODAL ═══ */
+#modal-overlay{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.3);backdrop-filter:blur(10px)}
+#modal-overlay.show{display:flex}
+.modal{background:#fffdf7;border-radius:22px;padding:32px 36px;max-width:420px;width:90%;height:auto;max-height:80vh;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.1);position:relative;animation:mIn .3s ease;display:flex;flex-direction:column}
+.modal-scroll{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;padding-right:4px}
+.modal-scroll::-webkit-scrollbar{width:4px}
+.modal-scroll::-webkit-scrollbar-thumb{background:rgba(0,0,0,.12);border-radius:4px}
+.modal-scroll::-webkit-scrollbar-track{background:transparent}
+@keyframes mIn{from{opacity:0;transform:scale(.92) translateY(14px)}to{opacity:1;transform:none}}
+.modal .m-emoji{font-size:2.4rem;margin-bottom:6px}
+.modal h3{font-size:1rem;margin-bottom:6px;color:#3a2e2e}
+.modal p{font-size:.82rem;color:#666;line-height:1.85;margin-bottom:12px;white-space:pre-line}
+.modal .close-btn{position:absolute;top:12px;right:12px;z-index:10;width:36px;height:36px;border-radius:50%;border:none;background:rgba(0,0,0,.06);cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;color:#999;transition:all .2s}
+.modal .close-btn:hover{background:rgba(0,0,0,.12);color:#333}
+.modal .close-btn:hover{background:#e0e0e0;color:#333}
+.modal .highlight{background:rgba(233,30,99,.06);border:1px solid rgba(233,30,99,.12);border-radius:8px;padding:10px;margin:10px 0;font-family:'Playfair Display',serif;font-size:1.6rem;color:#e91e63;letter-spacing:.3em}
+.modal input[type=text]{width:100%;padding:9px 14px;border:1px solid #f8bbd0;border-radius:8px;font-size:.95rem;text-align:center;letter-spacing:.2em;font-family:'Playfair Display',serif;margin-bottom:10px}
+.modal .action-btn{padding:9px 28px;border:none;border-radius:999px;background:linear-gradient(135deg,#e91e63,#ff5722);color:#fff;cursor:pointer;font-size:.85rem;font-family:'Noto Serif SC',serif}
+.modal .action-btn:hover{transform:scale(1.05)}
+#subtitle{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);z-index:10;background:rgba(255,255,255,.88);backdrop-filter:blur(10px);padding:9px 24px;border-radius:14px;font-size:.78rem;color:#555;max-width:75%;text-align:center;box-shadow:0 2px 10px rgba(0,0,0,.04)}
+#bee{position:fixed;z-index:999;pointer-events:none;font-size:1.3rem;transform:translate(-50%,-50%);transition:left .08s,top .08s}
+
+
+/* ─── Interactive object indicators ─── */
+.obj.interactive{animation:objBreathe 2.5s ease-in-out infinite}
+.obj.interactive.entering{animation:objPulseIn .6s ease-out forwards, objBreathe 2.5s ease-in-out .6s infinite}
+@keyframes objBreathe{0%,100%{filter:drop-shadow(0 0 4px rgba(255,215,0,.2))}50%{filter:drop-shadow(0 0 10px rgba(255,215,0,.45))}}
+@keyframes objPulseIn{0%{transform:translate(-50%,-50%) scale(1)}30%{transform:translate(-50%,-50%) scale(1.15)}60%{transform:translate(-50%,-50%) scale(.97)}100%{transform:translate(-50%,-50%) scale(1)}}
+
+/* ─── Room Photo Frame (2D illustration style) ─── */
+.room-photo-frame {
+  width: 100%; height: 100%;
+  position: relative;
+}
+.room-photo-inner {
+  width: 100%; height: 100%;
+  background: #fff;
+  border-radius: 3px;
+  padding: 5px 5px 12px 5px;
+  box-shadow: 0 2px 8px rgba(0,0,0,.1), 0 1px 2px rgba(0,0,0,.06);
+  transform: rotate(-2deg);
+  transition: transform .3s ease;
+  overflow: hidden;
+  position: relative;
+}
+.room-photo-inner:hover {
+  transform: rotate(0deg) scale(1.05);
+}
+.room-photo-scene {
+  width: 100%;
+  height: calc(100% - 7px);
+  border-radius: 2px;
+  overflow: hidden;
+  position: relative;
+  background: linear-gradient(180deg, #e3f2fd 0%, #bbdefb 40%, #a5d6a7 40%, #81c784 100%);
+}
+.room-photo-scene .pf-sun {
+  position: absolute; top: 8%; right: 12%;
+  width: 14px; height: 14px;
+  background: radial-gradient(circle, #ffd54f, #ffb300);
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(255,213,79,.4);
+}
+.room-photo-scene .pf-house {
+  position: absolute; bottom: 20%; left: 50%; transform: translateX(-50%);
+  width: 55%; height: 45%;
+}
+.room-photo-scene .pf-roof {
+  width: 0; height: 0;
+  border-left: 28px solid transparent;
+  border-right: 28px solid transparent;
+  border-bottom: 18px solid #ef9a9a;
+  margin: 0 auto;
+}
+.room-photo-scene .pf-wall {
+  width: 80%; height: 60%;
+  background: #fff3e0;
+  margin: 0 auto;
+  border-radius: 1px;
+  position: relative;
+}
+.room-photo-scene .pf-door {
+  position: absolute; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 22%; height: 55%;
+  background: #8d6e63;
+  border-radius: 2px 2px 0 0;
+}
+.room-photo-scene .pf-win {
+  position: absolute; top: 15%; width: 18%; height: 25%;
+  background: #bbdefb;
+  border: 1px solid #fff;
+  border-radius: 1px;
+}
+.room-photo-scene .pf-win.l { left: 12%; }
+.room-photo-scene .pf-win.r { right: 12%; }
+.room-photo-scene .pf-tree {
+  position: absolute; bottom: 18%;
+}
+.room-photo-scene .pf-tree.l { left: 8%; }
+.room-photo-scene .pf-tree.r { right: 8%; }
+.room-photo-scene .pf-trunk {
+  width: 4px; height: 10px;
+  background: #8d6e63;
+  margin: 0 auto;
+  border-radius: 0 0 1px 1px;
+}
+.room-photo-scene .pf-crown {
+  width: 16px; height: 14px;
+  background: #66bb6a;
+  border-radius: 50%;
+  margin: 0 auto -2px;
+}
+.room-photo-scene .pf-heart {
+  position: absolute; top: 15%; left: 50%; transform: translateX(-50%);
+  font-size: 8px; opacity: .6;
+}
+.room-photo-pin {
+  position: absolute;
+  top: -4px; left: 50%;
+  transform: translateX(-50%);
+  width: 8px; height: 8px;
+  background: radial-gradient(circle at 35% 35%, #ff8a80, #e53935);
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0,0,0,.2);
+  z-index: 2;
+}
+
+
+/* ─── Letter styling ─── */
+@import url('https://fonts.googleapis.com/css2?family=Ma+Shan+Zheng&display=swap');
+.letter-content{font-family:'Ma Shan Zheng','Noto Serif SC',serif;font-size:.95rem;line-height:2.2;color:#4a3728;text-align:left;padding:20px;background:linear-gradient(180deg,#fffef5,#fdf8e8);border-radius:8px;border:1px solid rgba(200,180,140,.2);background-image:repeating-linear-gradient(transparent,transparent 28px,rgba(200,180,140,.08) 28px,rgba(200,180,140,.08) 29px);position:relative}
+.letter-content::before{content:'';position:absolute;left:28px;top:0;bottom:0;width:1px;background:rgba(220,80,80,.12)}
+.letter-line{opacity:0;animation:letterLineIn .4s ease-out forwards}
+@keyframes letterLineIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
+.letter-signature{font-family:'Ma Shan Zheng',serif;font-size:1.1rem;color:#c62828;text-align:right;margin-top:16px;padding-right:12px}
+
+/* ─── Instax Polaroid Photo Frame ─── */
+.quiz-photo-frame {
+  margin: 20px auto 16px;
+  max-width: 300px;
+  position: relative;
+  animation: polaroidDrop .6s cubic-bezier(.34,1.56,.64,1);
+}
+@keyframes polaroidDrop {
+  0% { opacity:0; transform: translateY(-30px) rotate(-8deg) scale(.9); }
+  60% { transform: translateY(4px) rotate(1deg) scale(1.02); }
+  100% { opacity:1; transform: translateY(0) rotate(0) scale(1); }
+}
+.quiz-photo-inner {
+  position: relative;
+  background: #fff;
+  padding: 14px 14px 48px 14px;
+  border-radius: 4px;
+  box-shadow:
+    0 2px 4px rgba(0,0,0,.06),
+    0 8px 24px rgba(0,0,0,.10),
+    inset 0 0 0 1px rgba(0,0,0,.04);
+  transform: rotate(-1.5deg);
+  transition: transform .3s ease;
+}
+.quiz-photo-inner:hover {
+  transform: rotate(0deg) scale(1.02);
+}
+.quiz-photo-inner::before {
+  content: '';
+  position: absolute;
+  top: 14px; left: 14px; right: 14px; bottom: 48px;
+  border: 1px solid rgba(0,0,0,.06);
+  pointer-events: none;
+  z-index: 2;
+}
+.quiz-photo-img {
+  width: 100%;
+  aspect-ratio: 4/3;
+  object-fit: cover;
+  display: block;
+  filter: saturate(1.1) contrast(1.05) brightness(1.02);
+  animation: filmDevelop 1s ease-out;
+}
+@keyframes filmDevelop {
+  0% { opacity: 0; filter: saturate(0) contrast(.5) brightness(1.5) blur(4px); }
+  40% { filter: saturate(.3) contrast(.8) brightness(1.2) blur(1px); }
+  70% { filter: saturate(.8) contrast(1) brightness(1.05) blur(0); }
+  100% { opacity: 1; filter: saturate(1.1) contrast(1.05) brightness(1.02); }
+}
+.quiz-photo-caption {
+  position: absolute;
+  bottom: 12px;
+  left: 0; right: 0;
+  text-align: center;
+  font-family: 'Playfair Display', serif;
+  font-size: .85rem;
+  color: #888;
+  letter-spacing: .15em;
+  font-style: italic;
+}
+.quiz-photo-tape {
+  position: absolute;
+  top: -8px;
+  left: 50%;
+  transform: translateX(-50%) rotate(2deg);
+  width: 60px;
+  height: 18px;
+  background: rgba(255,235,180,.7);
+  border-radius: 1px;
+  box-shadow: 0 1px 3px rgba(0,0,0,.08);
+  z-index: 3;
+}
+</style>
+</head>
+<body>
+<div id="landing">
+  <div class="landing-card">
+    <div class="emoji">🎂</div>
+    <h1>Birthday Room</h1>
+    <div class="subtitle">— 一间藏满回忆的生日密室 —</div>
+    <div class="divider"></div>
+    <div class="desc">找到散落在房间里的线索<br>解开属于小宝 Doris 的生日密码</div>
+    <button class="enter-btn" onclick="enterRoom()">进入房间 ✦</button>
+  </div>
+</div>
+
+<div id="room">
+  <div class="wall-back"></div><div class="wall-left"></div><div class="wall-right"></div><div class="floor-area"></div>
+
+  <!-- 人字形彩带 + 三角旗 + 星星 -->
+  <svg class="ceiling-decor" viewBox="0 0 100 35" preserveAspectRatio="none">
+    <!-- 人字形彩带: 暖色系加粗 -->
+    <path d="M50,2 Q35,18 10,32" fill="none" stroke="#e8a0bf" stroke-width="1.2" opacity=".7"/>
+    <path d="M50,2 Q65,18 90,32" fill="none" stroke="#e8a0bf" stroke-width="1.2" opacity=".7"/>
+    <path d="M50,2 Q37,16 15,28" fill="none" stroke="#f4c87a" stroke-width=".9" opacity=".6"/>
+    <path d="M50,2 Q63,16 85,28" fill="none" stroke="#f4c87a" stroke-width=".9" opacity=".6"/>
+    <path d="M50,2 Q40,13 20,24" fill="none" stroke="#a8d8ea" stroke-width=".7" opacity=".5"/>
+    <path d="M50,2 Q60,13 80,24" fill="none" stroke="#a8d8ea" stroke-width=".7" opacity=".5"/>
+    <!-- 顶点金色圆 -->
+    <circle cx="50" cy="2" r="1.2" fill="#ffd54f" opacity=".8"/>
+    <circle cx="50" cy="2" r=".5" fill="#fff" opacity=".6"/>
+    <!-- 三角旗 放大+增多+暖色 -->
+    <polygon points="15,14 19,22 11,22" fill="#f48fb1" opacity=".75"/>
+    <polygon points="23,10 27,18 19,18" fill="#ffd54f" opacity=".75"/>
+    <polygon points="31,7 35,15 27,15" fill="#ffab91" opacity=".75"/>
+    <polygon points="39,4.5 43,12.5 35,12.5" fill="#a5d6a7" opacity=".75"/>
+    <polygon points="47,3 51,11 43,11" fill="#90caf9" opacity=".75"/>
+    <polygon points="53,3 57,11 49,11" fill="#ce93d8" opacity=".75"/>
+    <polygon points="61,4.5 65,12.5 57,12.5" fill="#f48fb1" opacity=".75"/>
+    <polygon points="69,7 73,15 65,15" fill="#ffd54f" opacity=".75"/>
+    <polygon points="77,10 81,18 73,18" fill="#ffab91" opacity=".75"/>
+    <polygon points="85,14 89,22 81,22" fill="#a5d6a7" opacity=".75"/>
+    <!-- 小星星用circle代替text避免跨浏览器问题 -->
+    <circle cx="20" cy="6" r=".6" fill="#ffd54f" opacity=".5"/>
+    <circle cx="35" cy="3.5" r=".5" fill="#ffd54f" opacity=".4"/>
+    <circle cx="65" cy="3.5" r=".5" fill="#ffd54f" opacity=".4"/>
+    <circle cx="80" cy="6" r=".6" fill="#ffd54f" opacity=".5"/>
+    <circle cx="45" cy="2" r=".4" fill="#fff" opacity=".5"/>
+    <circle cx="55" cy="2" r=".4" fill="#fff" opacity=".5"/>
+  </svg>
+
+  <!-- Objects container (JS will populate) -->
+  <div id="objects"></div>
+</div>
+
+<div id="modal-overlay">
+  <div class="modal" id="modal">
+    <button class="close-btn" onclick="closeModal()">✕</button>
+    <div class="modal-scroll">
+      <div class="m-emoji" id="modal-emoji"></div>
+      <h3 id="modal-title"></h3>
+      <p id="modal-text"></p>
+      <div id="modal-extra"></div>
+    </div>
+  </div>
+</div>
+<div id="subtitle" style="display:none"></div>
+<div id="bee">🐝</div>
+
+<!-- Audio -->
+<audio id="bgm-audio" loop preload="auto"><source src="./assets/audio/bgm.mp3" type="audio/mpeg"></audio>
+<audio id="finale-audio" preload="auto"><source src="./assets/audio/happy-birthday.mp3" type="audio/mpeg"></audio>
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+<script src="./src/main.js"></script>
+</body>
+</html>
+
+<!-- Photo Wall (shown after finale) -->
+<div id="photo-wall" style="display:none;position:fixed;inset:0;z-index:60;background:#0a0a0f;overflow-y:auto;padding:80px 30px 60px">
+  <div style="text-align:center;margin-bottom:30px">
+    <h2 style="font-family:'Playfair Display',serif;font-size:1.6rem;color:#ffd700;letter-spacing:.1em">✦ 我们的回忆 </h2>
+    <p style="font-size:.8rem;color:#c9a84c;opacity:.5;margin-top:6px">50张照片 · Lomo风格 · 下滑探索</p>
+  </div>
+  <div id="photo-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;max-width:900px;margin:0 auto"></div>
+  <div style="text-align:center;margin-top:40px;padding-bottom:20px">
+    <p style="color:#c9a84c;opacity:.4;font-size:.75rem">— Happy Birthday 小宝 Doris · 1998/09/03 —</p>
+  </div>
+</div>

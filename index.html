@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>🎂 Happy Birthday Doris</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;700&family=Playfair+Display:wght@400;700&display=swap');
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Noto Serif SC',serif;min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#fce4ec,#fff3e0,#e8f5e9);background-size:400% 400%;animation:bg 8s ease infinite}
+@keyframes bg{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+.container{text-align:center;padding:40px}
+h1{font-family:'Playfair Display',serif;font-size:2.4rem;background:linear-gradient(135deg,#e91e63,#ff5722);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:8px}
+.sub{color:#888;font-size:.9rem;margin-bottom:40px}
+.cards{display:flex;gap:32px;justify-content:center;flex-wrap:wrap}
+.card{background:rgba(255,255,255,.88);backdrop-filter:blur(16px);border-radius:24px;padding:40px 48px;text-align:center;max-width:280px;box-shadow:0 8px 32px rgba(0,0,0,.06);transition:all .3s;cursor:pointer;text-decoration:none;color:inherit;display:block}
+.card:hover{transform:translateY(-6px) scale(1.03);box-shadow:0 16px 48px rgba(0,0,0,.1)}
+.card .emoji{font-size:3rem;margin-bottom:12px}
+.card h2{font-size:1.2rem;color:#3a2e2e;margin-bottom:8px}
+.card p{font-size:.8rem;color:#888;line-height:1.7}
+.card .enter{display:inline-block;margin-top:16px;padding:10px 32px;border-radius:999px;background:linear-gradient(135deg,#e91e63,#ff5722);color:#fff;font-size:.85rem;letter-spacing:.1em}
+.footer{margin-top:48px;color:#ccc;font-size:.75rem}
+.float{position:fixed;opacity:.25;animation:fl linear infinite;pointer-events:none}
+@keyframes fl{0%{transform:translateY(100vh) rotate(0);opacity:0}10%{opacity:.25}90%{opacity:.25}100%{transform:translateY(-10vh) rotate(360deg);opacity:0}}
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>🎂 Happy Birthday</h1>
+  <p class="sub">To 小宝 Doris · 1998/09/03 · from Jerry with love ❤️</p>
+  <div class="cards">
+    <a class="card" href="./card/">
+      <div class="emoji">🎉</div>
+      <h2>生日贺卡</h2>
+      <p>手势翻页 · 粒子蛋糕<br>Lomo照片墙 · 彩带音乐</p>
+      <span class="enter">打开贺卡 ✦</span>
+    </a>
+    <a class="card" href="./puzzle/">
+      <div class="emoji">🔐</div>
+      <h2>生日密室</h2>
+      <p>解谜探索 · 回忆线索<br>手写信 · 礼物选择 · 照片墙</p>
+      <span class="enter">进入房间 ✦</span>
+    </a>
+  </div>
+  <p class="footer">— Made with ❤️ by Jerry —</p>
+</div>
+<script>
+var em=['🎈','','🎂','✨','🍃','💜','🌸'];
+for(var i=0;i<10;i++){var el=document.createElement('div');el.className='float';el.textContent=em[Math.floor(Math.random()*em.length)];el.style.left=Math.random()*100+'%';el.style.animationDuration=(6+Math.random()*8)+'s';el.style.animationDelay=Math.random()*6+'s';el.style.fontSize=(1+Math.random()*1.2)+'rem';document.body.appendChild(el)}
+</script>
+</body>
+</html>

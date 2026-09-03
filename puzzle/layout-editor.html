@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<title>🎨 房间布局编辑器 v2</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,'PingFang SC',sans-serif;background:#1a1a2e;color:#fff;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+.topbar{display:flex;align-items:center;justify-content:space-between;padding:8px 16px;background:#16213e;border-bottom:1px solid #2a2a4a;z-index:10}
+.topbar h2{font-size:.88rem;font-weight:600;color:#e0e0e0}
+.topbar .actions{display:flex;gap:8px}
+.btn{padding:6px 14px;border:none;border-radius:5px;font-size:.75rem;cursor:pointer;font-weight:600;transition:all .2s}
+.btn-export{background:#4caf50;color:#fff}.btn-export:hover{background:#43a047}
+.btn-reset{background:#ff5252;color:#fff}.btn-reset:hover{background:#e53935}
+.btn-add{background:#2196f3;color:#fff}.btn-add:hover{background:#1e88e5}
+.main{flex:1;display:flex;overflow:hidden}
+.canvas-wrap{flex:1;position:relative;overflow:hidden;background:#faf5ef}
+.room-bg{position:absolute;inset:0;pointer-events:none}
+.wall-back{position:absolute;top:5%;left:12%;right:12%;bottom:42%;background:linear-gradient(180deg,#fff8f0,#fef0e4);border-radius:12px 12px 0 0;opacity:.4}
+.wall-left{position:absolute;top:5%;left:0;width:12%;bottom:42%;background:linear-gradient(90deg,#f5e6d8,#fff0e4);clip-path:polygon(0 10%,100% 0,100% 100%,0 90%);opacity:.4}
+.wall-right{position:absolute;top:5%;right:0;width:12%;bottom:42%;background:linear-gradient(270deg,#f5e6d8,#fff0e4);clip-path:polygon(0 0,100% 10%,100% 90%,0 100%);opacity:.4}
+.floor-bg{position:absolute;left:0;right:0;bottom:0;height:42%;background:linear-gradient(180deg,#e8ddd0,#f8f2ea);clip-path:polygon(12% 0,88% 0,100% 100%,0 100%);opacity:.4}
+.grid-overlay{position:absolute;inset:0;pointer-events:none;
+  background-image:linear-gradient(rgba(0,0,0,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.03) 1px,transparent 1px);background-size:5% 5%}
+
+/* Streamer preview (人字形彩带) */
+.streamer-preview{position:absolute;inset:0;pointer-events:none;z-index:2}
+
+.item{position:absolute;cursor:grab;user-select:none;z-index:5;display:flex;flex-direction:column;align-items:center;transition:box-shadow .15s}
+.item:active{cursor:grabbing;z-index:100}
+.item.selected{outline:2px dashed #2196f3;outline-offset:3px;border-radius:4px}
+.item .icon{line-height:1;pointer-events:none}
+.item .label{font-size:.55rem;color:#333;background:rgba(255,255,255,.85);padding:1px 5px;border-radius:3px;margin-top:1px;white-space:nowrap;pointer-events:none}
+.item .coords{position:absolute;top:-14px;left:50%;transform:translateX(-50%);font-size:.5rem;color:#2196f3;font-family:monospace;white-space:nowrap;opacity:0;pointer-events:none}
+.item:hover .coords,.item.selected .coords{opacity:1}
+/* Size indicator border */
+.item .size-box{border:1px dashed rgba(33,150,243,.3);border-radius:4px;position:absolute;inset:-2px;pointer-events:none;opacity:0;transition:opacity .2s}
+.item:hover .size-box,.item.selected .size-box{opacity:1}
+
+.sidebar{width:280px;background:#16213e;border-left:1px solid #2a2a4a;display:flex;flex-direction:column;overflow:hidden}
+.sidebar h3{padding:10px 14px 6px;font-size:.72rem;color:#666;text-transform:uppercase;letter-spacing:.1em}
+.item-list{flex:1;overflow-y:auto;padding:0 10px 10px}
+.item-entry{display:flex;align-items:center;gap:6px;padding:6px 8px;margin-bottom:3px;background:#1a1a2e;border-radius:5px;cursor:pointer;transition:background .2s;font-size:.72rem}
+.item-entry:hover{background:#222244}
+.item-entry.active{background:#1565c0;color:#fff}
+.item-entry .ie-icon{font-size:1rem}
+.item-entry .ie-name{flex:1;font-size:.7rem}
+.item-entry .ie-info{font-family:monospace;font-size:.58rem;color:#888;text-align:right;line-height:1.3}
+.item-entry.active .ie-info{color:#bbdefb}
+
+/* Size editor popup */
+.size-editor{position:fixed;z-index:200;background:#1e1e3a;border:1px solid #3a3a5a;border-radius:8px;padding:12px 16px;box-shadow:0 8px 24px rgba(0,0,0,.4);display:none}
+.size-editor.show{display:block}
+.size-editor label{font-size:.7rem;color:#aaa;display:block;margin-bottom:4px}
+.size-editor input[type=range]{width:140px;margin-bottom:8px}
+.size-editor .se-val{font-family:monospace;font-size:.7rem;color:#4caf50}
+
+.output-panel{border-top:1px solid #2a2a4a;padding:10px 14px;max-height:180px;overflow-y:auto}
+.output-panel h3{font-size:.68rem;color:#666;margin-bottom:4px}
+.output-panel pre{font-size:.6rem;color:#4caf50;font-family:'SF Mono',monospace;white-space:pre-wrap;word-break:break-all;line-height:1.4}
+.instructions{position:absolute;bottom:10px;left:50%;transform:translateX(-50%);
+  background:rgba(0,0,0,.55);color:#fff;padding:6px 16px;border-radius:6px;font-size:.68rem;
+  pointer-events:none;z-index:200;backdrop-filter:blur(4px)}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h2>🎨 房间布局编辑器 v2 · 拖拽排列 + 调大小 + 人字彩带</h2>
+  <div class="actions">
+    <button class="btn btn-add" onclick="addCustomItem()">+ 添加物件</button>
+    <button class="btn btn-reset" onclick="resetLayout()">重置</button>
+    <button class="btn btn-export" onclick="exportLayout()">📋 导出坐标</button>
+  </div>
+</div>
+<div class="main">
+  <div class="canvas-wrap" id="canvas">
+    <div class="room-bg"><div class="wall-back"></div><div class="wall-left"></div><div class="wall-right"></div><div class="floor-bg"></div></div>
+    <!-- 人字形彩带预览 -->
+    <svg class="streamer-preview" id="streamerSvg" viewBox="0 0 100 100" preserveAspectRatio="none">
+      <line id="stL" x1="50" y1="5" x2="15" y2="35" stroke="#7b1fa2" stroke-width=".4" opacity=".5" stroke-dasharray="1,0.5"/>
+      <line id="stR" x1="50" y1="5" x2="85" y2="35" stroke="#7b1fa2" stroke-width=".4" opacity=".5" stroke-dasharray="1,0.5"/>
+      <line id="stL2" x1="50" y1="5" x2="20" y2="30" stroke="#f48fb1" stroke-width=".3" opacity=".4" stroke-dasharray="1,0.5"/>
+      <line id="stR2" x1="50" y1="5" x2="80" y2="30" stroke="#f48fb1" stroke-width=".3" opacity=".4" stroke-dasharray="1,0.5"/>
+      <circle cx="50" cy="5" r=".8" fill="#ffd54f" opacity=".6"/>
+    </svg>
+    <div class="grid-overlay"></div>
+    <div class="instructions">拖拽移动 · 滚轮调大小 · 右键编辑尺寸 · 完成后点「导出坐标」</div>
+  </div>
+  <div class="sidebar">
+    <h3>物件列表（滚轮/右键调大小）</h3>
+    <div class="item-list" id="itemList"></div>
+    <div class="output-panel" id="outputPanel" style="display:none">
+      <h3>导出结果（复制发给我）</h3>
+      <pre id="outputText"></pre>
+    </div>
+  </div>
+</div>
+
+<!-- Size editor -->
+<div class="size-editor" id="sizeEditor">
+  <label>宽度 (px): <span class="se-val" id="seW">60</span></label>
+  <input type="range" id="seWR" min="20" max="300" value="60" oninput="updateSize()"/>
+  <label>高度 (px): <span class="se-val" id="seH">60</span></label>
+  <input type="range" id="seHR" min="20" max="300" value="60" oninput="updateSize()"/>
+</div>
+
+<script>
+var defaultItems = [
+  {id:'table',     icon:'🪑', name:'桌子',     x:47, y:52, w:160, h:24},
+  {id:'sofa',      icon:'🛋️', name:'沙发',     x:47, y:39, w:260, h:80},
+  {id:'cake',      icon:'🎂', name:'蛋糕',     x:47, y:46, w:55,  h:50},
+  {id:'envelope',  icon:'💌', name:'信件',     x:35, y:49, w:55,  h:40},
+  {id:'note',      icon:'📝', name:'纸条',     x:42, y:50, w:36,  h:36},
+  {id:'mug',       icon:'☕', name:'马克杯',   x:55, y:49, w:24,  h:22},
+  {id:'vase',      icon:'💐', name:'花瓶',     x:62, y:47, w:28,  h:42},
+  {id:'window',    icon:'🪟', name:'窗户',     x:35, y:15, w:100, h:80},
+  {id:'calendar',  icon:'📅', name:'日历',     x:72, y:14, w:48,  h:56},
+  {id:'photo1',    icon:'📷', name:'照片板',   x:16, y:17, w:80,  h:65},
+  {id:'bookshelf', icon:'📚', name:'书架',     x:82, y:18, w:70,  h:100},
+  {id:'door',      icon:'🚪', name:'拱门',     x:50, y:26, w:60,  h:85},
+  {id:'fridge',    icon:'🧊', name:'冰箱',     x:14, y:22, w:50,  h:110},
+  {id:'lamp',      icon:'💡', name:'台灯',     x:84, y:36, w:24,  h:48},
+  {id:'drawer',    icon:'🗄️', name:'抽屉',     x:82, y:60, w:70,  h:55},
+  {id:'gift',      icon:'🎁', name:'礼物盒',   x:18, y:68, w:48,  h:44},
+  {id:'plant',     icon:'🌿', name:'绿植',     x:88, y:55, w:32,  h:50},
+  {id:'balloon1',  icon:'🎈', name:'红气球',   x:24, y:72, w:22,  h:26},
+  {id:'balloon2',  icon:'🎈', name:'金气球',   x:30, y:24, w:20,  h:24},
+  {id:'balloon3',  icon:'🎈', name:'蓝气球',   x:16, y:22, w:22,  h:26},
+  {id:'balloon4',  icon:'🎈', name:'紫气球',   x:84, y:20, w:20,  h:24},
+  {id:'balloon5',  icon:'🎈', name:'橙气球',   x:44, y:21, w:22,  h:26},
+  {id:'balloon6',  icon:'🎈', name:'粉气球',   x:73, y:22, w:20,  h:24},
+  {id:'carpet',    icon:'🟢', name:'地毯',     x:47, y:78, w:180, h:60},
+];
+
+var items = JSON.parse(JSON.stringify(defaultItems));
+var selectedId = null;
+var dragState = null;
+var canvas = document.getElementById('canvas');
+var itemListEl = document.getElementById('itemList');
+var sizeEditor = document.getElementById('sizeEditor');
+
+function render() {
+  canvas.querySelectorAll('.item').forEach(function(el){el.remove()});
+  itemListEl.innerHTML = '';
+  items.forEach(function(item) {
+    var el = document.createElement('div');
+    el.className = 'item' + (item.id===selectedId?' selected':'');
+    el.style.left = item.x+'%'; el.style.top = item.y+'%';
+    el.style.transform = 'translate(-50%,-50%)';
+    el.setAttribute('data-id', item.id);
+    // Scale icon to fit the w/h box
+    var fontSize = Math.min(item.w, item.h) * 0.7;
+    el.innerHTML = '<div class="size-box" style="width:'+item.w+'px;height:'+item.h+'px"></div>' +
+      '<span class="coords">'+Math.round(item.x)+'%,'+Math.round(item.y)+'% | '+item.w+'×'+item.h+'</span>' +
+      '<span class="icon" style="font-size:'+fontSize+'px">'+item.icon+'</span>' +
+      '<span class="label">'+item.name+'</span>';
+    el.addEventListener('mousedown', function(e){if(e.button===0)startDrag(e,item.id)});
+    el.addEventListener('wheel', function(e){e.preventDefault();resizeItem(item.id, e.deltaY>0?-5:5)}, {passive:false});
+    el.addEventListener('contextmenu', function(e){e.preventDefault();showSizeEditor(e,item.id)});
+    el.addEventListener('click', function(e){e.stopPropagation();selectItem(item.id)});
+    canvas.appendChild(el);
+
+    var entry = document.createElement('div');
+    entry.className = 'item-entry'+(item.id===selectedId?' active':'');
+    entry.innerHTML = '<span class="ie-icon">'+item.icon+'</span><span class="ie-name">'+item.name+'</span>'+
+      '<span class="ie-info">'+Math.round(item.x)+','+Math.round(item.y)+'<br>'+item.w+'×'+item.h+'</span>';
+    entry.addEventListener('click', function(){selectItem(item.id)});
+    itemListEl.appendChild(entry);
+  });
+}
+
+function selectItem(id){selectedId=id;sizeEditor.classList.remove('show');render()}
+
+function startDrag(e,id){
+  e.preventDefault();selectedId=id;
+  dragState={id:id,rect:canvas.getBoundingClientRect()};
+  sizeEditor.classList.remove('show');render();
+}
+document.addEventListener('mousemove',function(e){
+  if(!dragState)return;
+  var r=dragState.rect;
+  var x=Math.max(1,Math.min(99,((e.clientX-r.left)/r.width)*100));
+  var y=Math.max(1,Math.min(99,((e.clientY-r.top)/r.height)*100));
+  var item=items.find(function(i){return i.id===dragState.id});
+  if(item){item.x=x;item.y=y}
+  var el=canvas.querySelector('[data-id="'+dragState.id+'"]');
+  if(el){el.style.left=x+'%';el.style.top=y+'%';
+    el.querySelector('.coords').textContent=Math.round(x)+'%,'+Math.round(y)+'% | '+item.w+'×'+item.h}
+  var entries=itemListEl.querySelectorAll('.item-entry');
+  var idx=items.findIndex(function(i){return i.id===dragState.id});
+  if(entries[idx])entries[idx].querySelector('.ie-info').innerHTML=Math.round(x)+','+Math.round(y)+'<br>'+item.w+'×'+item.h;
+});
+document.addEventListener('mouseup',function(){if(dragState){dragState=null;render()}});
+canvas.addEventListener('click',function(){selectedId=null;sizeEditor.classList.remove('show');render()});
+
+function resizeItem(id,delta){
+  var item=items.find(function(i){return i.id===id});
+  if(!item)return;
+  item.w=Math.max(16,item.w+delta);
+  item.h=Math.max(16,item.h+delta);
+  render();
+}
+
+function showSizeEditor(e,id){
+  var item=items.find(function(i){return i.id===id});
+  if(!item)return;
+  selectedId=id;
+  sizeEditor.style.left=e.clientX+'px';sizeEditor.style.top=e.clientY+'px';
+  document.getElementById('seWR').value=item.w;document.getElementById('seW').textContent=item.w;
+  document.getElementById('seHR').value=item.h;document.getElementById('seH').textContent=item.h;
+  sizeEditor.classList.add('show');
+  sizeEditor._itemId=id;
+}
+function updateSize(){
+  var id=sizeEditor._itemId;if(!id)return;
+  var item=items.find(function(i){return i.id===id});if(!item)return;
+  item.w=parseInt(document.getElementById('seWR').value);
+  item.h=parseInt(document.getElementById('seHR').value);
+  document.getElementById('seW').textContent=item.w;
+  document.getElementById('seH').textContent=item.h;
+  render();
+}
+document.addEventListener('click',function(e){
+  if(!sizeEditor.contains(e.target))sizeEditor.classList.remove('show');
+});
+
+function exportLayout(){
+  var lines=items.map(function(i){
+    return '  '+i.id+': { x:'+Math.round(i.x)+', y:'+Math.round(i.y)+', w:'+i.w+', h:'+i.h+' }';
+  });
+  var out='var layout = {\n'+lines.join(',\n')+'\n};';
+  document.getElementById('outputPanel').style.display='block';
+  document.getElementById('outputText').textContent=out;
+  navigator.clipboard.writeText(out).then(function(){alert('✅ 已复制！粘贴发给我就行。')}).catch(function(){alert('请手动复制输出框内容。')});
+}
+function resetLayout(){if(confirm('重置所有位置？')){items=JSON.parse(JSON.stringify(defaultItems));selectedId=null;document.getElementById('outputPanel').style.display='none';render()}}
+function addCustomItem(){
+  var name=prompt('物件名称');if(!name)return;
+  var icon=prompt('emoji')||'📦';
+  items.push({id:'custom_'+Date.now(),icon:icon,name:name,x:50,y:50,w:50,h:50});
+  render();
+}
+render();
+</script>
+</body>
+</html>

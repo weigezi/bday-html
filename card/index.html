@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>🎂 Dear 小宝 Doris</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Noto+Serif+SC:wght@400;700&display=swap');
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { overflow:hidden; background:#050508; font-family:'Noto Serif SC','Playfair Display',Georgia,serif; color:#ffd700; }
+    #canvas-container { position:fixed; inset:0; z-index:1; }
+    .corner { position:fixed; z-index:5; width:40px; height:40px; pointer-events:none; }
+    .corner-tl { top:20px; left:20px; border-top:2px solid #c9a84c; border-left:2px solid #c9a84c; }
+    .corner-tr { top:20px; right:20px; border-top:2px solid #c9a84c; border-right:2px solid #c9a84c; }
+    .corner-bl { bottom:20px; left:20px; border-bottom:2px solid #c9a84c; border-left:2px solid #c9a84c; }
+    .corner-br { bottom:20px; right:20px; border-bottom:2px solid #c9a84c; border-right:2px solid #c9a84c; }
+    #title-bar { position:fixed; top:28px; left:50%; transform:translateX(-50%); z-index:10; text-align:center; pointer-events:none; }
+    #title-bar h1 { font-family:'Playfair Display',Georgia,serif; font-size:1.8rem; font-weight:700; letter-spacing:.12em; color:#ffd700; text-shadow:0 0 20px rgba(255,215,0,.3); }
+    #title-bar .line { width:180px; height:1px; background:linear-gradient(90deg,transparent,#c9a84c,transparent); margin:5px auto; }
+    #title-bar .sub { font-size:.7rem; color:#c9a84c; letter-spacing:.25em; opacity:.6; }
+    #ui-layer { position:fixed; top:95px; left:0; right:0; z-index:10; pointer-events:none; display:flex; flex-direction:column; align-items:center; }
+    .hint { font-size:.9rem; opacity:.8; color:#e8d5a3; text-shadow:0 2px 12px rgba(0,0,0,.9); transition:opacity .5s; pointer-events:auto; text-align:center; max-width:70%; line-height:1.7; background:rgba(10,8,15,.5); padding:8px 20px; border-radius:16px; border:1px solid rgba(201,168,76,.15); backdrop-filter:blur(6px); }
+    .hint small { opacity:.5; font-size:.78rem; }
+    .hint.hidden { opacity:0; pointer-events:none; }
+    .gold-btn { pointer-events:auto; padding:10px 28px; font-size:.85rem; border:1px solid #c9a84c; border-radius:4px; background:rgba(10,8,15,.7); color:#ffd700; cursor:pointer; font-family:'Playfair Display',Georgia,serif; letter-spacing:.1em; transition:all .3s; backdrop-filter:blur(4px); }
+    .gold-btn:hover { background:rgba(201,168,76,.15); box-shadow:0 0 15px rgba(255,215,0,.2); }
+    #start-btn { position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); padding:16px 48px; font-size:1.2rem; z-index:15; border:2px solid #c9a84c; border-radius:4px; background:rgba(10,8,15,.85); color:#ffd700; cursor:pointer; font-family:'Playfair Display',Georgia,serif; letter-spacing:.15em; transition:all .3s; }
+    #start-btn:hover { background:rgba(201,168,76,.12); box-shadow:0 0 30px rgba(255,215,0,.25); transform:translate(-50%,-50%) scale(1.05); }
+    #btn-group { position:fixed; bottom:75px; left:50%; transform:translateX(-50%); z-index:10; display:flex; gap:16px; }
+    #wish-btn, #reset-btn, #next-btn { display:none; }
+    #cam-preview { position:fixed; top:20px; left:70px; width:140px; height:105px; border-radius:8px; border:1px solid rgba(201,168,76,.25); z-index:20; transform:scaleX(-1); object-fit:cover; opacity:.45; transition:opacity .3s; }
+    #cam-preview:hover { opacity:.85; }
+    #scene-label { position:fixed; bottom:20px; left:70px; font-size:.65rem; opacity:.2; z-index:20; font-family:monospace; color:#c9a84c; }
+    #gesture-debug { position:fixed; top:130px; left:70px; font-size:.65rem; opacity:.2; z-index:20; font-family:monospace; white-space:pre; color:#c9a84c; }
+    #bottom-label { position:fixed; bottom:28px; left:50%; transform:translateX(-50%); z-index:5; font-size:.6rem; color:#c9a84c; opacity:.25; letter-spacing:.3em; font-family:'Playfair Display',serif; pointer-events:none; }
+
+    /* ─── Photo Wall (Lomo style) ─── */
+    #photo-wall { position:fixed; inset:0; z-index:8; display:none; background:#050508; overflow:hidden; padding:100px 40px 80px; }
+    #photo-wall .wall-header { text-align:center; margin-bottom:24px; }
+    #photo-wall .wall-header h2 { font-family:'Playfair Display',serif; font-size:1.4rem; color:#ffd700; letter-spacing:.1em; }
+    #photo-wall .wall-header p { font-size:.75rem; color:#c9a84c; opacity:.4; margin-top:4px; }
+    #photo-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; max-width:800px; margin:0 auto; }
+    .lomo-card { background:#fff; padding:8px 8px 28px; border-radius:2px; box-shadow:0 4px 20px rgba(0,0,0,.4); transition:transform .3s,box-shadow .3s; cursor:pointer; }
+    .lomo-card:hover { transform:rotate(0deg) scale(1.04) !important; box-shadow:0 8px 30px rgba(255,215,0,.2); z-index:10; }
+    .lomo-img-wrap { position:relative; overflow:hidden; border-radius:1px; }
+    .lomo-img { width:100%; aspect-ratio:1; object-fit:cover; display:block; filter:saturate(1.1) contrast(1.05); }
+    .lomo-vignette { position:absolute; inset:0; background:radial-gradient(ellipse at center,transparent 50%,rgba(0,0,0,.3) 100%); pointer-events:none; }
+    .lomo-num { text-align:center; font-size:.65rem; color:#999; margin-top:6px; font-family:monospace; }
+    #page-indicator { position:fixed; bottom:40px; left:50%; transform:translateX(-50%); z-index:12; font-family:'Playfair Display',serif; font-size:.9rem; color:#c9a84c; opacity:.6; letter-spacing:.2em; }
+    #page-nav { position:fixed; bottom:36px; left:50%; transform:translateX(-50%); z-index:12; display:flex; gap:20px; align-items:center; }
+    #page-nav button { background:none; border:1px solid rgba(201,168,76,.3); color:#c9a84c; padding:6px 16px; border-radius:4px; cursor:pointer; font-size:.75rem; transition:all .2s; }
+    #page-nav button:hover { background:rgba(201,168,76,.1); border-color:#c9a84c; }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands@0.4.1675469240/hands.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3.1675466862/camera_utils.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/howler@2.2.4/dist/howler.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+</head>
+<body>
+  <div id="canvas-container"></div>
+  <div class="corner corner-tl"></div><div class="corner corner-tr"></div>
+  <div class="corner corner-bl"></div><div class="corner corner-br"></div>
+  <div id="title-bar">
+    <h1>Dear 小宝 Doris</h1>
+    <div class="line"></div>
+    <div class="sub">1998 / 09 / 03 · INTERACTIVE CARD</div>
+  </div>
+  <div id="ui-layer"><p id="hint-text" class="hint hidden"></p></div>
+  <button id="start-btn">✦ ENTER</button>
+  <div id="btn-group">
+    <button id="wish-btn" class="gold-btn">REVEAL WISH ✦</button>
+    <button id="reset-btn" class="gold-btn">RESET CAKE</button>
+    <button id="next-btn" class="gold-btn">NEXT →</button>
+  </div>
+  <div id="photo-wall">
+    <div class="wall-header">
+      <h2>✦ Our Memories </h2>
+      <p>50 photos · Lomo style</p>
+    </div>
+    <div id="photo-grid"></div>
+    <div id="page-nav">
+      <button onclick="prevPhotoPage()">← PREV</button>
+      <span id="page-indicator">1 / 9</span>
+      <button onclick="nextPhotoPage()">NEXT →</button>
+    </div>
+  </div>
+  <video id="cam-preview" autoplay playsinline muted></video>
+  <div id="scene-label"></div>
+  <div id="gesture-debug"></div>
+  <div id="bottom-label">INTERACTIVE CARD</div>
+  
+<!-- Audio -->
+<audio id="bgm-audio" loop preload="auto"><source src="./assets/audio/bgm.mp3" type="audio/mpeg"></audio>
+<audio id="finale-audio" preload="auto"><source src="./assets/audio/happy-birthday.mp3" type="audio/mpeg"></audio>
+<script src="./src/main.js"></script>
+</body>
+</html>
