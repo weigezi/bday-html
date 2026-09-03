@@ -444,6 +444,13 @@ function showQuizModal(data) {
               }
             }
             letterHtml += '</div>';
+            // Yellow Z hint at the bottom (like flipping the letter over)
+            letterHtml += '<div style="margin-top:20px;padding:16px;background:rgba(255,213,79,.1);border:2px dashed #ffd54f;border-radius:12px;text-align:center">';
+            letterHtml += '<p style="font-size:.8rem;color:#999;margin-bottom:8px">— 翻过来 —</p>';
+            letterHtml += '<p style="font-size:.75rem;color:#888;margin-bottom:6px">信的最下面有一个用黄色框住的字母...</p>';
+            letterHtml += '<div style="display:inline-block;padding:8px 24px;background:rgba(255,213,79,.15);border:2px solid #ffd54f;border-radius:8px;font-family:Playfair Display,serif;font-size:2rem;color:#f9a825;letter-spacing:.2em;font-weight:700">Z</div>';
+            letterHtml += '<p style="font-size:.75rem;color:#c9a84c;margin-top:8px">💛 这是密码的其中一位噢！</p>';
+            letterHtml += '</div>';
             showModal({
               emoji: '💌',
               title: 'Jerry 写给你的信',
@@ -514,33 +521,19 @@ function showFinale() {
   setTimeout(function(){ confetti({ particleCount:150, spread:120, origin:{y:0.4}, gravity:0.5, ticks:300 }); }, 500);
   setTimeout(function(){ confetti({ particleCount:100, spread:100, origin:{y:0.6}, gravity:0.4, ticks:250 }); }, 1000);
 
-  // Show letter with handwriting style + typewriter effect
-  document.getElementById('modal-emoji').textContent = '💌';
+  // Brief celebration message, then go to gift selection (letter was already shown at envelope)
+  document.getElementById('modal-emoji').textContent = '🎉';
   document.getElementById('modal-title').textContent = 'Happy Birthday, 小宝 Doris! 🎂';
-  // Build letter with line-by-line reveal
-  var lines = LETTER_TEXT.split('\n');
-  var letterHtml = '<div class="letter-content">';
-  for (var li = 0; li < lines.length; li++) {
-    var lineText = lines[li].trim();
-    if (lineText === '') {
-      letterHtml += '<br>';
-    } else if (lineText.indexOf('— Jerry') === 0) {
-      letterHtml += '<div class="letter-signature letter-line" style="animation-delay:' + (li * 0.15) + 's">' + lineText + '</div>';
-    } else {
-      letterHtml += '<div class="letter-line" style="animation-delay:' + (li * 0.15) + 's">' + lineText + '</div>';
-    }
-  }
-  letterHtml += '</div>';
-  document.getElementById('modal-text').innerHTML = letterHtml;
-  document.getElementById('modal-extra').innerHTML = '<p style="margin-top:16px;font-size:.85rem;color:#e91e63;font-weight:700">— 永远爱你的 Jerry ❤️</p>';
+  document.getElementById('modal-text').innerHTML = '<p style="font-size:1rem;color:#e91e63;line-height:2">门打开了！✨<br><br>生日快乐，我的宝贝。<br>愿所有美好如期而至。</p>';
+  document.getElementById('modal-extra').innerHTML = '<p style="margin-top:12px;font-size:.85rem;color:#c9a84c">— 永远爱你的 Jerry ❤️</p>';
   document.getElementById('modal-overlay').classList.add('show');
 
   setSubtitle('🎉 Happy Birthday 小宝 Doris! 愿所有美好如期而至 ✨');
   // Play happy birthday
   var fa = document.getElementById('finale-audio');
   if (fa) { fa.volume = 0.5; fa.play().catch(function(){}); }
-  // Show gift selection after letter
-  setTimeout(function() { showGiftSelection(); }, 4000);
+  // Show gift selection after brief celebration
+  setTimeout(function() { closeModal(); showGiftSelection(); }, 3000);
 }
 
 function closeModal() { document.getElementById('modal-overlay').classList.remove('show'); }
